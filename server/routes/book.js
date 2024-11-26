@@ -2,9 +2,10 @@ var express = require('express');
 var router = express.Router();
 let mongoose = require('mongoose');
 let Item = require('../model/item'); // Updated model import to 'item'
+const { ensureAuthenticated } = require('../middlewares/auth'); // Import authentication middleware
 
 /* Read Operation: Get route for displaying the inventory list */
-router.get('/', async (req, res, next) => {
+router.get('/', ensureAuthenticated, async (req, res, next) => {
     try {
         const ItemList = await Item.find();
         res.render('Inventory/list', {
@@ -20,7 +21,7 @@ router.get('/', async (req, res, next) => {
 });
 
 /* Create Operation: Display the Add Item Page */
-router.get('/add', async (req, res, next) => {
+router.get('/add', ensureAuthenticated, async (req, res, next) => {
     try {
         res.render('Inventory/add', {
             title: 'Add Item'
@@ -34,7 +35,7 @@ router.get('/add', async (req, res, next) => {
 });
 
 /* Create Operation: Process the Add Item */
-router.post('/add', async (req, res, next) => {
+router.post('/add', ensureAuthenticated, async (req, res, next) => {
     try {
         let newItem = new Item({
             "ItemName": req.body.ItemName,
@@ -55,7 +56,7 @@ router.post('/add', async (req, res, next) => {
 });
 
 /* Update Operation: Display Edit Item Page */
-router.get('/edit/:id', async (req, res, next) => {
+router.get('/edit/:id', ensureAuthenticated, async (req, res, next) => {
     try {
         const id = req.params.id;
         const itemToEdit = await Item.findById(id);
@@ -70,7 +71,7 @@ router.get('/edit/:id', async (req, res, next) => {
 });
 
 /* Update Operation: Process the Edit Item */
-router.post('/edit/:id', async (req, res, next) => {
+router.post('/edit/:id', ensureAuthenticated, async (req, res, next) => {
     try {
         const id = req.params.id;
         const updatedItem = {
@@ -92,7 +93,7 @@ router.post('/edit/:id', async (req, res, next) => {
 });
 
 /* Delete Operation */
-router.get('/delete/:id', async (req, res, next) => {
+router.get('/delete/:id', ensureAuthenticated, async (req, res, next) => {
     try {
         const id = req.params.id;
         await Item.findByIdAndDelete(id);
