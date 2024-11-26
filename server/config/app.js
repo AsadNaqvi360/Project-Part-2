@@ -19,6 +19,27 @@ mongoDB.once('open', () => {
     console.log("Connected with MongoDB");
 });
 
+// Passport.js and Session setup
+const passport = require('./passport'); // Import the Passport.js configuration
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
+
+// Session setup with MongoDB store
+app.use(
+  session({
+    secret: 'your_secret_key', // Replace with a strong secret
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: DB.URI, // MongoDB URI for session storage
+    }),
+  })
+);
+
+// Initialize Passport.js
+app.use(passport.initialize());
+app.use(passport.session());
+
 // view engine setup
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'ejs');
