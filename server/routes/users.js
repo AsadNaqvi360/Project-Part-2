@@ -1,65 +1,60 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 const passport = require('passport');
-const User = require('../model/user'); // Import the User model
+const User = require('../model/user'); // Import your User model
+const bcrypt = require('bcryptjs'); // For hashing passwords
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+// Render login page
+router.get('/login', (req, res) => {
+  res.render('login', { title: 'Login' });
 });
 
-/* GET Login Page */
-router.get('/login', function(req, res) {
-  res.render('login', { title: 'Login' }); // Render the login page
-});
-
-/* POST Login */
+// Authenticate user using Passport.js
 router.post(
   '/login',
   passport.authenticate('local', {
-    successRedirect: '/inventory', // Redirect to inventory on success
+    successRedirect: '/inventory', // Redirect after successful login
     failureRedirect: '/users/login', // Redirect back to login on failure
-    failureFlash: true, // Enable failure messages
+    failureFlash: true, // Enable flash messages if using flash
   })
 );
 
-/* GET Register Page */
-router.get('/register', function(req, res) {
-  res.render('register', { title: 'Register' }); // Render the registration page
+// Render registration page
+router.get('/register', (req, res) => {
+  res.render('register', { title: 'Register' });
 });
 
-/* POST Register */
+// Handle user registration
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    // Check if email already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user exists
+    const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.render('register', {
         title: 'Register',
-        error: 'Email is already registered.',
+        error: 'Username is already registered.',
       });
     }
 
-    // Create new user
-    const newUser = new User({ username, email, password });
+    // Hash password and save user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, email, password: hashedPassword });
     await newUser.save();
 
-    // Redirect to login after successful registration
-    res.redirect('/users/login');
+    res.redirect('/users/login'); // Redirect to login page after registration
   } catch (err) {
-    console.error(err);
     res.render('register', {
       title: 'Register',
-      error: 'Error registering user. Please try again.',
+      error: 'An error occurred. Please try again.',
     });
   }
 });
 
-/* GET Logout */
-router.get('/logout', function(req, res, next) {
-  req.logout(function(err) {
+// Logout route
+router.get('/logout', (req, res) => {
+  req.logout((err) => {
     if (err) {
       return next(err);
     }
