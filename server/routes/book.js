@@ -51,4 +51,5 @@ router.post('/add', async (req, res) => {
   }
 });
 
-// Other routes (Edit, Delete) can also be updated similarly to handle user-specific actions
+// Export the router
+module.exports = router;
