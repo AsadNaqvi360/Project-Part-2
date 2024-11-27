@@ -40,6 +40,14 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Middleware to redirect unauthenticated users to the login page
+app.use((req, res, next) => {
+  if (!req.isAuthenticated() && req.path !== '/users/login' && req.path !== '/users/register') {
+    return res.redirect('/users/login');
+  }
+  next();
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'ejs');
