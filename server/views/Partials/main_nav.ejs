@@ -23,6 +23,20 @@
       <li class="nav-item">
         <a class="nav-link" href="/contactus"><i class="fas fa-envelope"></i> ContactUs</a>
       </li>
+
+      <!-- Dynamic login/logout section -->
+      <% if (user) { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </li>
+      <% } else { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/register"><i class="fas fa-user-plus"></i> Register</a>
+        </li>
+      <% } %>
     </ul>
   </div>
 </nav>

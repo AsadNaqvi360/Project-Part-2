@@ -44,13 +44,14 @@ router.post('/register', async (req, res) => {
     req.flash('success_msg', 'Registration successful! Please log in.');
     res.redirect('/users/login'); // Redirect to login page with success message
   } catch (err) {
+    console.error(err);
     req.flash('error_msg', 'An error occurred during registration. Please try again.');
     res.redirect('/users/register');
   }
 });
 
 // Logout route
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
       return next(err);

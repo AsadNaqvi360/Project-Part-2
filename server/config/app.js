@@ -54,6 +54,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware to make the user object available globally
+app.use((req, res, next) => {
+  res.locals.user = req.user; // Attach the logged-in user to res.locals
+  next();
+});
+
 // Middleware to redirect unauthenticated users to the login page
 app.use((req, res, next) => {
   if (!req.isAuthenticated() && req.path !== '/users/login' && req.path !== '/users/register') {

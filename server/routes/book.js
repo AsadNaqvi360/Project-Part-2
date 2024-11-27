@@ -25,7 +25,16 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Add New Inventory Item
+// GET Route to Render "Add Inventory Item" Page
+router.get('/add', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/users/login');
+  }
+
+  res.render('Inventory/add', { title: 'Add New Item' });
+});
+
+// POST Route to Add New Inventory Item
 router.post('/add', async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect('/users/login');
@@ -47,7 +56,10 @@ router.post('/add', async (req, res) => {
     res.redirect('/inventory'); // Redirect back to the inventory page
   } catch (err) {
     console.error(err);
-    res.redirect('/inventory');
+    res.render('Inventory/add', {
+      title: 'Add New Item',
+      error: 'Error adding item to warehouse',
+    });
   }
 });
 
