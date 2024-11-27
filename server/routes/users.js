@@ -15,7 +15,7 @@ router.post(
   passport.authenticate('local', {
     successRedirect: '/inventory', // Redirect after successful login
     failureRedirect: '/users/login', // Redirect back to login on failure
-    failureFlash: true, // Enable flash messages if using flash
+    failureFlash: true, // Enable flash messages
   })
 );
 
@@ -32,10 +32,8 @@ router.post('/register', async (req, res) => {
     // Check if user exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.render('register', {
-        title: 'Register',
-        error: 'Username is already registered.',
-      });
+      req.flash('error_msg', 'Username is already registered.');
+      return res.redirect('/users/register'); // Redirect with error message
     }
 
     // Hash password and save user
@@ -43,12 +41,11 @@ router.post('/register', async (req, res) => {
     const newUser = new User({ username, email, password: hashedPassword });
     await newUser.save();
 
-    res.redirect('/users/login'); // Redirect to login page after registration
+    req.flash('success_msg', 'Registration successful! Please log in.');
+    res.redirect('/users/login'); // Redirect to login page with success message
   } catch (err) {
-    res.render('register', {
-      title: 'Register',
-      error: 'An error occurred. Please try again.',
-    });
+    req.flash('error_msg', 'An error occurred during registration. Please try again.');
+    res.redirect('/users/register');
   }
 });
 
@@ -58,6 +55,7 @@ router.get('/logout', (req, res) => {
     if (err) {
       return next(err);
     }
+    req.flash('success_msg', 'You are logged out.');
     res.redirect('/users/login'); // Redirect to login after logout
   });
 });

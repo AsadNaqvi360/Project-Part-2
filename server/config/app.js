@@ -24,6 +24,9 @@ const passport = require('./passport'); // Import the Passport.js configuration
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 
+// Flash messages setup
+const flash = require('connect-flash'); // Import connect-flash
+
 // Session setup with MongoDB store
 app.use(
   session({
@@ -39,6 +42,17 @@ app.use(
 // Initialize Passport.js
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Initialize connect-flash
+app.use(flash());
+
+// Middleware to make flash messages available globally
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  next();
+});
 
 // Middleware to redirect unauthenticated users to the login page
 app.use((req, res, next) => {
