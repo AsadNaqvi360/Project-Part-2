@@ -1,109 +1,54 @@
-var express = require('express');
-var router = express.Router();
-let mongoose = require('mongoose');
-let Item = require('../model/item'); // Updated model import to 'item'
-const { ensureAuthenticated } = require('../middlewares/auth'); // Import authentication middleware
+const express = require('express');
+const router = express.Router();
+const Item = require('../model/item'); // Import the Item model
 
-/* Read Operation: Get route for displaying the inventory list */
-router.get('/', ensureAuthenticated, async (req, res, next) => {
-    try {
-        const ItemList = await Item.find();
-        res.render('Inventory/list', {
-            title: 'Inventory',
-            ItemList: ItemList
-        });
-    } catch (err) {
-        console.error(err);
-        res.render('Inventory/list', {
-            error: 'Error retrieving inventory data'
-        });
-    }
+// Display User's Inventory
+router.get('/', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/users/login');
+  }
+
+  try {
+    // Fetch inventory items belonging to the logged-in user
+    const items = await Item.find({ user_id: req.user.id });
+    res.render('Inventory/list', {
+      title: 'Your Warehouse Inventory',
+      ItemList: items,
+    });
+  } catch (err) {
+    console.error(err);
+    res.render('Inventory/list', {
+      title: 'Your Warehouse Inventory',
+      ItemList: [],
+      error: 'Error fetching your inventory',
+    });
+  }
 });
 
-/* Create Operation: Display the Add Item Page */
-router.get('/add', ensureAuthenticated, async (req, res, next) => {
-    try {
-        res.render('Inventory/add', {
-            title: 'Add Item'
-        });
-    } catch (err) {
-        console.error(err);
-        res.render('Inventory/list', {
-            error: 'Error on the server'
-        });
-    }
+// Add New Inventory Item
+router.post('/add', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/users/login');
+  }
+
+  try {
+    // Create a new inventory item associated with the logged-in user
+    const newItem = new Item({
+      ItemName: req.body.ItemName,
+      Supplier: req.body.Supplier,
+      DateReceived: req.body.DateReceived,
+      ItemDescription: req.body.ItemDescription,
+      Cost: req.body.Cost,
+      Quantity: req.body.Quantity,
+      user_id: req.user.id, // Associate the item with the logged-in user
+    });
+
+    await newItem.save();
+    res.redirect('/inventory'); // Redirect back to the inventory page
+  } catch (err) {
+    console.error(err);
+    res.redirect('/inventory');
+  }
 });
 
-/* Create Operation: Process the Add Item */
-router.post('/add', ensureAuthenticated, async (req, res, next) => {
-    try {
-        let newItem = new Item({
-            "ItemName": req.body.ItemName,
-            "Supplier": req.body.Supplier,
-            "DateReceived": req.body.DateReceived,
-            "ItemDescription": req.body.ItemDescription,
-            "Cost": req.body.Cost,
-            "Quantity": req.body.Quantity
-        });
-        await newItem.save();
-        res.redirect('/inventory');
-    } catch (err) {
-        console.error(err);
-        res.render('Inventory/list', {
-            error: 'Error saving new item'
-        });
-    }
-});
-
-/* Update Operation: Display Edit Item Page */
-router.get('/edit/:id', ensureAuthenticated, async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const itemToEdit = await Item.findById(id);
-        res.render('Inventory/edit', {
-            title: 'Edit Item',
-            Item: itemToEdit
-        });
-    } catch (err) {
-        console.error(err);
-        next(err);
-    }
-});
-
-/* Update Operation: Process the Edit Item */
-router.post('/edit/:id', ensureAuthenticated, async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const updatedItem = {
-            "ItemName": req.body.ItemName,
-            "Supplier": req.body.Supplier,
-            "DateReceived": req.body.DateReceived,
-            "ItemDescription": req.body.ItemDescription,
-            "Cost": req.body.Cost,
-            "Quantity": req.body.Quantity
-        };
-        await Item.findByIdAndUpdate(id, updatedItem);
-        res.redirect('/inventory');
-    } catch (err) {
-        console.error(err);
-        res.render('Inventory/list', {
-            error: 'Error updating item'
-        });
-    }
-});
-
-/* Delete Operation */
-router.get('/delete/:id', ensureAuthenticated, async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        await Item.findByIdAndDelete(id);
-        res.redirect('/inventory');
-    } catch (err) {
-        console.error(err);
-        res.render('Inventory/list', {
-            error: 'Error deleting item'
-        });
-    }
-});
-
-module.exports = router;
+// Other routes (Edit, Delete) can also be updated similarly to handle user-specific actions
